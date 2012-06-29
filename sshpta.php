@@ -68,6 +68,16 @@ if(!isset($options['t'])){
 	$s->usage();
 	exit();
 }
+if(!isset($options['u'])){
+	echo "[Error] No user list (or user) specified\n\n";
+	$s->usage();
+	exit();
+}
+if(!isset($options['c'])){
+	echo "[Error] No command list (or command) specified\n\n";
+	$s->usage();
+	exit();
+}
 
 if(file_exists($options['t'])){
 	$targets_file = file($options['t']);
@@ -78,8 +88,18 @@ if(file_exists($options['t'])){
 	$targets_file[] = trim($options['t']);
 }
 
+if(file_exists($options['c'])){
+	$commands_file = file($options['c']);
+}else{
+	$commands_file = array();
+	echo "[Info] Command list file does not not exist\n";
+	echo "[Info] Added single command '".trim($options['c'])."'\n";
+	$commands_file[] = trim($options['c']);
+}
+
 foreach($targets_file as $targets_file_line){
 	// Arrays Associated with Authenticating
+	$users = array();
 	$passwords = array();
 	$private_keys = array();
 	$public_keys = array();
@@ -88,6 +108,10 @@ foreach($targets_file as $targets_file_line){
 	// Arrays Associated with Automation
 	$command_list = array();
 	$local_bash_script = array();
+
+	foreach($commands_file as $commands_file_line){
+		$command_list[] = trim($commands_file_line);
+	}
 
 	$target = explode(":",$targets_file_line);
 	if(count($target) == 1){
@@ -100,10 +124,66 @@ foreach($targets_file as $targets_file_line){
 		$host = trim(str_replace(":","",$target[0]));
 		$port = trim(str_replace(":",$target[1]));
 		$password = trim($target[2]);
-		push($passwords, $password);
+		$passwords[] = $password;
 	}
 
 	echo "[Target]  $host:$port\n";
+
+	if(file_exists($options['u'])){
+		$users_file = file($options['u']);
+	}else{
+		$users_file = array();
+		echo "[Info] Users file does not not exist\n";
+		echo "[Info] Using single user '".trim($options['u'])."'\n";
+		$users_file[] = trim($options['u']);
+	}
+
+	foreach($users_file as $users_file_line){
+		$users[] = trim($users_file_line);
+	}
+
+	if(count($users) > 0){
+		foreach($users as $user){
+			echo "[Info] User = $user\n";
+
+			if(isset($options['p'])){
+				if(file_exists($options['p'])){
+					$passwords_file = file($options['p']);
+				}else{
+					$passwords_file = array();
+					$passwords_file[] = trim($options['p']);
+				}
+				foreach($passwords_file as $passwords_file_line){
+					$passwords[] = trim($passwords_file_line);
+				}
+			}
+
+			if(count($passwords) > 0){
+				foreach($passwords as $password){
+					$connection = $s->set_up_password_ssh_connection($host,$port,$user,$password);
+					if($connection != 0){
+						echo "[Success] We have a connection to $host\n";
+						echo "[Info] Remote Hostname: ".$s->ssh_shell_exec($connection,"uname -n")."\n";
+						$shell = ssh2_shell($connection, 'vt102', null, 80, 40, SSH2_TERM_UNIT_CHARS);
+						$shell_log = '';
+						stream_set_blocking($shell, false);
+						foreach($command_list as $command){
+							fwrite($shell, $command."\n");
+							$data = "";
+							sleep(1);
+            						while ($buf = fread($shell,4096)) {
+                						$shell_log .= $buf;
+            						}
+						}
+						echo $shell_log;
+						fclose($shell);
+					}
+				}
+			}
+		}
+	}else{
+		echo "[Info] Skipping this host, no users\n";
+	}
 }
 
 ?>
