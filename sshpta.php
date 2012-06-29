@@ -183,18 +183,17 @@ foreach($targets_file as $targets_file_line){
 
 						foreach($command_list as $command){
 							$hash = md5(microtime());
-							fwrite($shell, $command."\n");
+							fwrite($shell, $command."; echo $hash\n");
 							sleep(1);
-							fwrite($shell, "echo ".$hash."\n");
-
 							$matches = array();
-							while(count($matches) < 1){
-	            						$buf = fread($shell,4096);
-        	        					$shell_log .= $buf;
-								preg_match_all("/$hash/",$shell_log,$matches);
+							while(true){
+	            						$shell_log .= fread($shell,4096);
+								if(substr_count($shell_log,$hash) == 2){
+									break;
+								}
 							}
 						}
-						echo $shell_log."\n";
+						echo $shell_log;
 						if(isset($options['l'])){
 							$log_directory = trim($options['l']);
 							echo "[Info] Log directory is '$log_directory'\n";
