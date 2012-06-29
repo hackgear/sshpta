@@ -35,6 +35,30 @@ php ./sshpta.php -t ./targets.txt -u user -p ./password.txt -c ./command_list.tx
 
 ===
 
+Replacements:
+
+The following can be used in the command list to be replaced with
+current values - mainly for priv esc:
+
+{{sshpta-username}}
+{{sshpta-password}}
+
+===
+
+Target File Format:
+
+Can either just be a Hostname/IP (Defaults to port 22):
+example.com
+
+Hostname/IP and Port:
+example.com:2222
+
+Hostname/IP and Port and Password (For use where you
+have a password per host)
+example.com:22:P455w0rd
+
+===
+
 Planned functionality:
 	- Improvements
 	- A method of 
