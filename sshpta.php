@@ -124,7 +124,7 @@ foreach($targets_file as $targets_file_line){
 		$port = $target[1];
 	}else{
 		$host = trim(str_replace(":","",$target[0]));
-		$port = trim(str_replace(":",$target[1]));
+		$port = trim(str_replace(":","",$target[1]));
 		$password = trim($target[2]);
 		$passwords[] = $password;
 	}
