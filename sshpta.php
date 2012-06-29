@@ -2,7 +2,12 @@
 
 class sshpta{
 	function usage(){
-		echo "SSHPTA v0.1\n";
+		echo "SSHPTA v0.1\n\nUsage\n";
+		echo "-t\tTarget List File or Target\n";
+		echo "-u\tUser List File or User\n";
+		echo "-p\tPassword List File or Password\n";
+		echo "-c\tCommand List File or Command\n";
+		echo "-l\tEnable Logging to this directory\n";
 	}
 
 	function set_up_password_ssh_connection($server,$port,$username,$password){
@@ -61,7 +66,7 @@ class sshpta{
 
 $s = new sshpta;
 
-$options = getopt("t:u:p:c:b");
+$options = getopt("t:u:p:c:l:b");
 
 if(!isset($options['t'])){
 	echo "[Error] No target list (or target) specified\n\n";
@@ -184,6 +189,13 @@ foreach($targets_file as $targets_file_line){
 							}
 						}
 						echo $shell_log."\n";
+						if(isset($options['l'])){
+							$log_directory = trim($options['l']);
+							echo "[Info] Log directory is '$log_directory'\n";
+							$log_file = $log_directory.time()."_".$host.".txt";
+							echo "[Log] Saving shell output to '$log_file'\n";
+							file_put_contents($log_file,$shell_log);
+						}
 						fclose($shell);
 					}
 				}
