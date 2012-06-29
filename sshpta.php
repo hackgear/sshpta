@@ -166,16 +166,24 @@ foreach($targets_file as $targets_file_line){
 						echo "[Info] Remote Hostname: ".$s->ssh_shell_exec($connection,"uname -n")."\n";
 						$shell = ssh2_shell($connection, 'vt102', null, 80, 40, SSH2_TERM_UNIT_CHARS);
 						$shell_log = '';
-						stream_set_blocking($shell, false);
-						foreach($command_list as $command){
-							fwrite($shell, $command."\n");
-							$data = "";
-							sleep(1);
-            						while ($buf = fread($shell,4096)) {
-                						$shell_log .= $buf;
-            						}
+						stream_set_blocking($shell,false);
+						sleep(1);
+						$data = "";
+            					while ($buf = fread($shell,4096)) {
+                					$data .= $buf;
 						}
-						echo $shell_log;
+						foreach($command_list as $command){
+							$hash = md5(microtime());
+							fwrite($shell, $command.";echo ".$hash."\n");
+							sleep(1);
+							$matches = array();
+							while(count($matches) < 1){
+	            						$buf = fread($shell,4096);
+        	        					$shell_log .= $buf;
+								preg_match_all("/$hash/",$shell_log,$matches);
+							}
+						}
+						echo $shell_log."\n";
 						fclose($shell);
 					}
 				}
