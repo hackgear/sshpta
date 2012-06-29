@@ -1,3 +1,45 @@
-sshpta (pre-alpha)
+sshpta (pre-alpha) v0.1
 
-In development!
+SSH Pen Tester Automation
+
+===
+
+sshpta is an SSH automation tool specifically aimed at
+penetration testers
+
+It aims to automate through a set of commands on multiple
+remote hosts.
+
+===
+
+Dependencies:
+
+apt-get install libssh2-1-dev libssh2-php
+
+===
+
+Usage:
+-t      Target List File or Target
+-u      User List File or User
+-p      Password List File or Password
+-c      Command List File or Command
+
+php ./sshpta.php -t ./targets.txt -u user -p ./password.txt -c ./command_list.txt
+
+The script first determines if a file exists for each paramer
+otherwise a single instance can be entered.
+
+-l      Enable Logging to this directory
+
+php ./sshpta.php -t ./targets.txt -u user -p ./password.txt -c ./command_list.txt -l ./logs/
+
+===
+
+Planned functionality:
+	- Improvements
+	- A method of 
+		* Running a local bash script on remote host
+		* Archiving output files collected
+		* Retrieve output archive over SCP
+		* Cleaning up remote host
+

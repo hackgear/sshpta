@@ -114,9 +114,6 @@ foreach($targets_file as $targets_file_line){
 	$command_list = array();
 	$local_bash_script = array();
 
-	foreach($commands_file as $commands_file_line){
-		$command_list[] = trim($commands_file_line);
-	}
 
 	$target = explode(":",$targets_file_line);
 	if(count($target) == 1){
@@ -177,10 +174,19 @@ foreach($targets_file as $targets_file_line){
             					while ($buf = fread($shell,4096)) {
                 					$data .= $buf;
 						}
+
+						foreach($commands_file as $commands_file_line){
+							$commands_file_line = str_replace("{{sshpta-username}}",$user,$commands_file_line);
+							$commands_file_line = str_replace("{{sshpta-password}}",$password,$commands_file_line);
+							$command_list[] = trim($commands_file_line);
+						}
+
 						foreach($command_list as $command){
 							$hash = md5(microtime());
-							fwrite($shell, $command.";echo ".$hash."\n");
+							fwrite($shell, $command."\n");
 							sleep(1);
+							fwrite($shell, "echo ".$hash."\n");
+
 							$matches = array();
 							while(count($matches) < 1){
 	            						$buf = fread($shell,4096);
@@ -197,6 +203,7 @@ foreach($targets_file as $targets_file_line){
 							file_put_contents($log_file,$shell_log);
 						}
 						fclose($shell);
+						echo "\n===\n";
 					}
 				}
 			}
