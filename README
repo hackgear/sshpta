@@ -10,6 +10,11 @@ penetration testers
 It aims to automate through a set of commands on multiple
 remote hosts.
 
+The main aim for when faced with lots of interactive logins.
+
+This version only supports usernames and passwords. 
+No key based logins.	
+
 ===
 
 Dependencies:
