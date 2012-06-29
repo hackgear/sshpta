@@ -193,7 +193,7 @@ foreach($targets_file as $targets_file_line){
 								}
 							}
 						}
-						echo $shell_log;
+						echo $shell_log."\n";
 						if(isset($options['l'])){
 							$log_directory = trim($options['l']);
 							echo "[Info] Log directory is '$log_directory'\n";
