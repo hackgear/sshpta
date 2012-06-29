@@ -61,26 +61,49 @@ class sshpta{
 
 $s = new sshpta;
 
-$options = getopt("t:u");
+$options = getopt("t:u:p:c:b");
 
 if(!isset($options['t'])){
-	echo "[Error] No targets file specified\n\n";
+	echo "[Error] No target list (or target) specified\n\n";
 	$s->usage();
 	exit();
 }
 
-$targets_file = file($options['t']);
+if(file_exists($options['t'])){
+	$targets_file = file($options['t']);
+}else{
+	$targets_file = array();
+	echo "[Info] Target file does not not exist\n";
+	echo "[Info] Using single target '".trim($options['t'])."'\n";
+	$targets_file[] = trim($options['t']);
+}
 
 foreach($targets_file as $targets_file_line){
+	// Arrays Associated with Authenticating
+	$passwords = array();
+	$private_keys = array();
+	$public_keys = array();
+	$passphrases = array();
+
+	// Arrays Associated with Automation
+	$command_list = array();
+	$local_bash_script = array();
+
 	$target = explode(":",$targets_file_line);
 	if(count($target) == 1){
 		$host = trim($target[0]);
 		$port = 22;
-	}else{
+	}elseif (count($target) == 2){
 		$host = trim(str_replace(":","",$target[0]));
 		$port = $target[1];
+	}else{
+		$host = trim(str_replace(":","",$target[0]));
+		$port = trim(str_replace(":",$target[1]));
+		$password = trim($target[2]);
+		push($passwords, $password);
 	}
-	echo "$host : $port\n";
+
+	echo "[Target]  $host:$port\n";
 }
 
 ?>
