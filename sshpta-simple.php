@@ -2,13 +2,12 @@
 
 class sshpta{
 	function usage(){
-		echo "SSHPTA v0.2\n\nUsage\n";
+		echo "SSHPTA v0.1\n\nUsage\n";
 		echo "-t\tTarget List File or Target\n";
 		echo "-u\tUser List File or User\n";
 		echo "-p\tPassword List File or Password\n";
 		echo "-c\tCommand List File or Command\n";
 		echo "-l\tEnable Logging to this directory\n";
-		echo "-b\tLocal shell script to execute on remote host(s)\n";
 	}
 
 	function set_up_password_ssh_connection($server,$port,$username,$password){
@@ -61,43 +60,13 @@ class sshpta{
 			return 0;
 		}
 	}
-	function init_local_bash_script_option($server,$port,$username,$password,$local_bash_script){
-		echo "[Info] Preparing for local shell script option\n";
-		$session = md5(microtime());
-		$remote_directory = "/tmp/sshpta-".$session;
-		echo "[Info] Opening another SSH connection for SCP\n";
-		$new_connection = $this->set_up_password_ssh_connection($server,$port,$username,$password);
-		echo "[Info] Creating directory '".$remote_directory."' on remote host\n";
-		$this->ssh_shell_exec($new_connection,"mkdir ".$remote_directory);
-		echo "[Info] Uploading local shell script '".trim($local_bash_script)."'\n";
-		if(!ssh2_scp_send($new_connection,trim($local_bash_script),$remote_directory."/sshpta.sh")){
-			echo "[Error] Something went wrong when uploading local shell script\n";
-		}else{
-			$this->ssh_shell_exec($new_connection,"chmod +x ".$remote_directory."/sshpta.sh");
-		}
-		return $session;
-	}
-	function get_results_local_bash_script_option($server,$port,$username,$password,$session,$local_filename){
-		$new_connection = $this->set_up_password_ssh_connection($server,$port,$username,$password);
-		$remote_results = "/tmp/sshpta-".$session.".tar.gz";
-		echo "[Info] Downloading results\n";
-		if(!ssh2_scp_recv($new_connection,$remote_results,$local_filename)){
-			echo "[Error] Failed to retrieve results\n";
-		}
-	}
-	function clean_up_after_local_bash_script_option($server,$port,$username,$password,$session){
-		$new_connection = $this->set_up_password_ssh_connection($server,$port,$username,$password);
-		$remote_directory = "/tmp/sshpta-".$session;
-		echo "[Info] Removing directory '".$remote_directory."' on remote host\n";
-                $this->ssh_shell_exec($new_connection,"rm -rf ".$remote_directory);
-                $this->ssh_shell_exec($new_connection,"rm -f /tmp/sshpta-".$session.".tar.gz");
-	}
+
 }
 
 
 $s = new sshpta;
 
-$options = getopt("t:u:p:c:l:b:");
+$options = getopt("t:u:p:c:l:b");
 
 if(!isset($options['t'])){
 	echo "[Error] No target list (or target) specified\n\n";
@@ -111,11 +80,6 @@ if(!isset($options['u'])){
 }
 if(!isset($options['c'])){
 	echo "[Error] No command list (or command) specified\n\n";
-	$s->usage();
-	exit();
-}
-if(isset($options['b']) && !isset($options['l'])){
-	echo "[Error] A log directory (-l) must be specified when using -b\n\n";
 	$s->usage();
 	exit();
 }
@@ -201,8 +165,8 @@ foreach($targets_file as $targets_file_line){
 					$connection = $s->set_up_password_ssh_connection($host,$port,$user,$password);
 					if($connection != 0){
 						echo "[Success] We have a connection to $host\n";
-						echo "[Info] Remote Hostname: ".trim($s->ssh_shell_exec($connection,"uname -n"))."\n";
-						$shell = ssh2_shell($connection, 'vt102', null, 250, 40, SSH2_TERM_UNIT_CHARS);
+						echo "[Info] Remote Hostname: ".$s->ssh_shell_exec($connection,"uname -n")."\n";
+						$shell = ssh2_shell($connection, 'vt102', null, 80, 40, SSH2_TERM_UNIT_CHARS);
 						$shell_log = '';
 						stream_set_blocking($shell,false);
 						sleep(1);
@@ -217,18 +181,9 @@ foreach($targets_file as $targets_file_line){
 							$command_list[] = trim($commands_file_line);
 						}
 
-						if(isset($options['b'])){
-							$session = $s->init_local_bash_script_option($host,$port,$user,$password,trim($options['b']));
-							$command_list[] = "cd \"/tmp/sshpta-".$session."\"";
-							$command_list[] = "./sshpta.sh";
-							$command_list[] = "tar -pczf /tmp/sshpta-".$session.".tar.gz /tmp/sshpta-".$session."/*";
-							$command_list[] = "chmod 777 /tmp/sshpta-".$session.".tar.gz";
-						}
-
 						foreach($command_list as $command){
 							$hash = md5(microtime());
-							echo "[Info] Sending '$command'\n";
-							fwrite($shell, $command.";echo $hash\n");
+							fwrite($shell, $command."; echo $hash\n");
 							sleep(1);
 							$matches = array();
 							while(true){
@@ -246,12 +201,6 @@ foreach($targets_file as $targets_file_line){
 							echo "[Log] Saving shell output to '$log_file'\n";
 							file_put_contents($log_file,$shell_log);
 						}
-
-                                                if(isset($options['b'])){
-							$s->get_results_local_bash_script_option($host,$port,$user,$password,$session,$log_directory.time()."_".$host.".tar.gz");
-                                                        $s->clean_up_after_local_bash_script_option($host,$port,$user,$password,$session);
-						}
-
 						fclose($shell);
 						echo "\n===\n";
 					}

@@ -1,4 +1,4 @@
-sshpta (pre-alpha) v0.1
+sshpta (alpha) v0.2
 
 SSH Pen Tester Automation
 
@@ -38,6 +38,15 @@ otherwise a single instance can be entered.
 
 php ./sshpta.php -t ./targets.txt -u user -p ./password.txt -c ./command_list.txt -l ./logs/
 
+-b	Specifiy a local shell script to run on remote host(s)
+	The script excutes the script within a /tmp/ working directory
+	and anything stored in the working directory is retrieved
+	i.e. ps aux > ./ps_aux.txt
+             id > ./id.txt
+	     cp /etc/passwd ./passwd.txt
+	You must specify a local log directory for incoming .tar.gz files 
+	containing output
+
 ===
 
 Replacements:
@@ -64,11 +73,6 @@ example.com:22:P455w0rd
 
 ===
 
-Planned functionality:
-	- Improvements
-	- A method of 
-		* Running a local bash script on remote host
-		* Archiving output files collected
-		* Retrieve output archive over SCP
-		* Cleaning up remote host
-
+TODO:
+	* More Error Checking
+	* Multi-Thread
