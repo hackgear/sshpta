@@ -220,6 +220,7 @@ foreach($targets_file as $targets_file_line){
 						if(isset($options['b'])){
 							$session = $s->init_local_bash_script_option($host,$port,$user,$password,trim($options['b']));
 							$command_list[] = "cd \"/tmp/sshpta-".$session."\"";
+							$command_list[] = "chmod +x ./sshpta.sh";
 							$command_list[] = "./sshpta.sh";
 							$command_list[] = "tar -pczf /tmp/sshpta-".$session.".tar.gz /tmp/sshpta-".$session."/*";
 							$command_list[] = "chmod 777 /tmp/sshpta-".$session.".tar.gz";
