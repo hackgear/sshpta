@@ -138,6 +138,7 @@ if(file_exists($options['c'])){
 	$commands_file[] = trim($options['c']);
 }
 
+
 foreach($targets_file as $targets_file_line){
 	// Arrays Associated with Authenticating
 	$users = array();
@@ -246,6 +247,7 @@ foreach($targets_file as $targets_file_line){
 								$ticks++;
 							}
 						}
+						echo "\nShell Output:\n";
 						echo $shell_log."\n";
 						if(isset($options['l'])){
 							$log_directory = trim($options['l']);
