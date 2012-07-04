@@ -2,7 +2,8 @@
 
 class sshpta{
 	function usage(){
-		echo "SSHPTA v0.1\n\nUsage\n";
+		echo "SSHPTA (simple) v0.1\n";
+		echo "Older version of tool with only basic features\nUsage:\n\n";
 		echo "-t\tTarget List File or Target\n";
 		echo "-u\tUser List File or User\n";
 		echo "-p\tPassword List File or Password\n";

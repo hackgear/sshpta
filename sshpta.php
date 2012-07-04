@@ -9,6 +9,7 @@ class sshpta{
 		echo "-c\tCommand List File or Command\n";
 		echo "-l\tEnable Logging to this directory\n";
 		echo "-b\tLocal shell script to execute on remote host(s)\n";
+		echo "-m\tMax command execution time (seconds)\n";
 	}
 
 	function set_up_password_ssh_connection($server,$port,$username,$password){
@@ -97,7 +98,7 @@ class sshpta{
 
 $s = new sshpta;
 
-$options = getopt("t:u:p:c:l:b:");
+$options = getopt("t:u:p:c:l:b:m:");
 
 if(!isset($options['t'])){
 	echo "[Error] No target list (or target) specified\n\n";
@@ -118,6 +119,13 @@ if(isset($options['b']) && !isset($options['l'])){
 	echo "[Error] A log directory (-l) must be specified when using -b\n\n";
 	$s->usage();
 	exit();
+}
+if(isset($options['m'])){
+	$max_execution_time = abs(trim($options['m']));
+	echo "[Info] Max Command Execution Time = ".$max_execution_time." seconds\n";
+}else{
+	echo "[Info] Max Command Execution Time = 120 seconds (Default)\n";
+	$max_execution_time = 120;
 }
 
 if(file_exists($options['t'])){
@@ -239,8 +247,8 @@ foreach($targets_file as $targets_file_line){
 								if(substr_count($shell_log,$hash) == 2){
 									break;
 								}
-								if($ticks > 1200){
-									echo "[Error] Command end detection failed (120 seconds elapsed) - Skipping\n"; 
+								if($ticks > ($max_execution_time*10)){
+									echo "[Error] Command end detection failed (".$max_execution_time." seconds elapsed) - Skipping\n"; 
 									break;
 								}
 								usleep(100000);

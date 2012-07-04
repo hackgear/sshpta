@@ -47,6 +47,9 @@ php ./sshpta.php -t ./targets.txt -u user -p ./password.txt -c ./command_list.tx
 	You must specify a local log directory for incoming .tar.gz files 
 	containing output
 
+-m      Max command execution time (seconds)
+
+	
 ===
 
 Replacements:
