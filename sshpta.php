@@ -224,6 +224,7 @@ foreach($targets_file as $targets_file_line){
 							$command_list[] = "./sshpta.sh";
 							$command_list[] = "tar -pczf /tmp/sshpta-".$session.".tar.gz /tmp/sshpta-".$session."/*";
 							$command_list[] = "chmod 777 /tmp/sshpta-".$session.".tar.gz";
+							$command_list[] = "chmod -R 777 /tmp/sshpta-".$session."/";
 						}
 
 						foreach($command_list as $command){
@@ -231,11 +232,18 @@ foreach($targets_file as $targets_file_line){
 							echo "[Info] Sending '$command'\n";
 							fwrite($shell,$command.";echo $hash\n");
 							sleep(1);
+							$ticks = 0;
 							while(true){
 	            						$shell_log .= fread($shell,4096);
 								if(substr_count($shell_log,$hash) == 2){
 									break;
 								}
+								if($ticks > 1200){
+									echo "[Error] Command end detection failed (120 seconds elapsed) - Skipping\n"; 
+									break;
+								}
+								usleep(100000);
+								$ticks++;
 							}
 						}
 						echo $shell_log."\n";
