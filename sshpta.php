@@ -229,9 +229,7 @@ foreach($targets_file as $targets_file_line){
 						foreach($command_list as $command){
 							$hash = md5(microtime());
 							echo "[Info] Sending '$command'\n";
-							fwrite($shell,$command."\n");
-							usleep(200000);
-							fwrite($shell,"echo $hash\n");
+							fwrite($shell,$command.";echo $hash\n");
 							sleep(1);
 							while(true){
 	            						$shell_log .= fread($shell,4096);
