@@ -1,4 +1,4 @@
-sshpta (alpha) v0.2
+sshpta (alpha) v0.21
 
 SSH Pen Tester Automation
 
@@ -49,7 +49,7 @@ php ./sshpta.php -t ./targets.txt -u user -p ./password.txt -c ./command_list.tx
 
 -m      Max command execution time (seconds)
 
-	
+-d	Adjust the command delay overide option {[sshpta-delay}} (seconds)
 ===
 
 Replacements:
@@ -59,6 +59,16 @@ current values - mainly for priv esc:
 
 {{sshpta-username}}
 {{sshpta-password}}
+
+In addition to these replacements the command end detection can be turned off
+for a single command and split up with by usig the value {{sshpta-delay}}
+wihtin a single command line.
+
+i.e. su -{{sshpta-delay}}<INSERT ROOT PASSWORD HERE>
+
+Would cause su - to be send then trigger a delay then send the password
+
+{{sshpta-delay}} is 2 seconds by default but can be modified by -d parameter
 
 ===
 

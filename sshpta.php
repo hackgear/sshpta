@@ -2,7 +2,7 @@
 
 class sshpta{
 	function usage(){
-		echo "SSHPTA v0.2\n\nUsage\n";
+		echo "SSHPTA v0.21\n\nUsage\n";
 		echo "-t\tTarget List File or Target\n";
 		echo "-u\tUser List File or User\n";
 		echo "-p\tPassword List File or Password\n";
@@ -10,6 +10,7 @@ class sshpta{
 		echo "-l\tEnable Logging to this directory\n";
 		echo "-b\tLocal shell script to execute on remote host(s)\n";
 		echo "-m\tMax command execution time (seconds)\n";
+		echo "-d\tAdjust {{sshpta-delay}} time (seconds)\n";
 	}
 
 	function set_up_password_ssh_connection($server,$port,$username,$password){
@@ -18,7 +19,7 @@ class sshpta{
 		 	echo "[Error] Connection to $server : $port failed\n";
 			return 0;
 		}else{
-    			if(!ssh2_auth_password($con, $username, $password)) {
+    			if(!@ssh2_auth_password($con, $username, $password)) {
        		 		echo "[Error] Authentication to $server : $port failed using username $username\n";
 				return 0;
     			} else {
@@ -98,7 +99,7 @@ class sshpta{
 
 $s = new sshpta;
 
-$options = getopt("t:u:p:c:l:b:m:");
+$options = getopt("t:u:p:c:l:b:m:d:");
 
 if(!isset($options['t'])){
 	echo "[Error] No target list (or target) specified\n\n";
@@ -126,6 +127,14 @@ if(isset($options['m'])){
 }else{
 	echo "[Info] Max Command Execution Time = 120 seconds (Default)\n";
 	$max_execution_time = 120;
+}
+
+if(isset($options['d'])){
+	$sshpta_delay = abs(trim($options['d']));
+	echo "[Info] {{sshpta-delay}} set to ".$sshpta_delay." seconds\n";
+}else{
+	echo "[Info] {{sshpta-delay}} set to = 2 seconds (Default)\n";
+	$sshpta_delay = 2;
 }
 
 if(file_exists($options['t'])){
@@ -189,6 +198,8 @@ foreach($targets_file as $targets_file_line){
 		$users[] = trim($users_file_line);
 	}
 
+	$successful_login = false;
+
 	if(count($users) > 0){
 		foreach($users as $user){
 			echo "[Info] User = $user\n";
@@ -238,8 +249,19 @@ foreach($targets_file as $targets_file_line){
 
 						foreach($command_list as $command){
 							$hash = md5(microtime());
-							echo "[Info] Sending '$command'\n";
-							fwrite($shell,$command.";echo $hash\n");
+							$skip_command_detection = 0;
+							if(substr_count($command,"{{sshpta-delay}}") == 0){
+								echo "[Info] Sending '$command'\n";
+								fwrite($shell,$command.";echo $hash\n");
+							}else{
+								$split_delayed_commands = explode("{{sshpta-delay}}",$command);
+								foreach($split_delayed_commands as $split_delayed_command){
+									echo "[Info] Sending '".trim(str_replace("{{sshpta-delay}}","",$split_delayed_command))."', then waiting $sshpta_delay seconds\n";
+									fwrite($shell,trim(str_replace("{{sshpta-delay}}","",$split_delayed_command))."\n");
+									sleep($sshpta_delay);
+								}
+                                                        	$skip_command_detection = 1; 
+							}
 							sleep(1);
 							$ticks = 0;
 							while(true){
@@ -249,6 +271,9 @@ foreach($targets_file as $targets_file_line){
 								}
 								if($ticks > ($max_execution_time*10)){
 									echo "[Error] Command end detection failed (".$max_execution_time." seconds elapsed) - Skipping\n"; 
+									break;
+								}
+								if($skip_command_detection == 1){
 									break;
 								}
 								usleep(100000);
@@ -272,7 +297,12 @@ foreach($targets_file as $targets_file_line){
 
 						fclose($shell);
 						echo "\n===\n";
+						$successful_login = true;
+						break;
 					}
+				}
+				if($successful_login){
+					break;
 				}
 			}
 		}
