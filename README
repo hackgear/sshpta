@@ -71,6 +71,18 @@ Would cause su - to be send then trigger a delay then send the password
 
 {{sshpta-delay}} is 2 seconds by default but can be modified by -d parameter
 
+Simple example:
+php ./sshpta.php -t ./targets.txt -u ./users.txt -p ./password.txt 
+-c 'su -{{sshpta-delay}}r00tp4ssw0rd{{sshpta-delay}}id'
+
+===
+
+Priv Esc and Local Shell Scripts:
+
+The order by which the script works means that commands specified
+in command list are executed run before the shell script allowing
+for priv esc if required.
+
 ===
 
 Target File Format:
