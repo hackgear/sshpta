@@ -1,24 +1,25 @@
-sshpta (alpha) v0.21
+sshpta (alpha) v0.22
 
 SSH Pen Tester Automation
 
 ===
 
 sshpta is an SSH automation tool specifically aimed at
-penetration testers
+saving penetration testers time when they have to carry
+out reptitive tasks against multiple target SSH hosts and
+have been provided credentials.
 
-It aims to automate through a set of commands on multiple
-remote hosts.
-
-The main aim for when faced with lots of interactive logins.
-
-This version only supports usernames and passwords. 
-No key based logins.	
+The tool was initially created as a simple way to login
+using interactive password based authentication to multiple
+hosts and run a set of commands. The tool has evolved to
+try and help with privilege escalation on target hosts,
+allow running of a provided shell script on remote hosts
+along with the retrival of results and finally now should
+allow key based authentication.
 
 ===
 
 Dependencies:
-
 apt-get install libssh2-1-dev libssh2-php
 
 ===
@@ -31,7 +32,7 @@ Usage:
 
 php ./sshpta.php -t ./targets.txt -u user -p ./password.txt -c ./command_list.txt
 
-The script first determines if a file exists for each paramer
+The script first determines if a file exists for each parameter
 otherwise a single instance can be entered.
 
 -l      Enable Logging to this directory
@@ -50,6 +51,7 @@ php ./sshpta.php -t ./targets.txt -u user -p ./password.txt -c ./command_list.tx
 -m      Max command execution time (seconds)
 
 -d	Adjust the command delay overide option {[sshpta-delay}} (seconds)
+
 ===
 
 Replacements:
@@ -86,6 +88,25 @@ example.com:22:P455w0rd
 
 ===
 
+Key-Based Authentication (Experimental):
+
+A very hacked together approach I know but by providing a 'password'
+in the following format should allow key based authentication to be used.
+<publickey-file>{{sshpta-key}}<privatekey-file>{{sshpta-key}}<passphrase>
+
+
+===
+
+Predicted issues:
+	* /tmp/ is sometimes marked as non-exec therefore local
+	bash script option will not work. Planned fixes.
+	* tar is assumed to be present on remote system etc.
+	want to build in more error checking to run remote
+	host checks
+
+===
+
 TODO:
 	* More Error Checking
 	* Multi-Thread
+	* Add built in host enumeration option / priv esc vector checker

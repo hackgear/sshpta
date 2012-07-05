@@ -2,7 +2,7 @@
 
 class sshpta{
 	function usage(){
-		echo "SSHPTA v0.21\n\nUsage\n";
+		echo "SSHPTA v0.22\n\nUsage\n";
 		echo "-t\tTarget List File or Target\n";
 		echo "-u\tUser List File or User\n";
 		echo "-p\tPassword List File or Password\n";
@@ -14,36 +14,38 @@ class sshpta{
 	}
 
 	function set_up_password_ssh_connection($server,$port,$username,$password){
-		if (!function_exists("ssh2_connect")) die("function ssh2_connect doesn't exist");
-		if(!($con = ssh2_connect($server, $port))){
-		 	echo "[Error] Connection to $server : $port failed\n";
-			return 0;
-		}else{
-    			if(!@ssh2_auth_password($con, $username, $password)) {
-       		 		echo "[Error] Authentication to $server : $port failed using username $username\n";
+		if (!function_exists("ssh2_connect")) die("No PHP libssh2? apt-get install libssh2-1-dev libssh2-php");
+		if(substr_count($password,"{{sshpta-key}}") == 0){
+			if(!($con = @ssh2_connect($server, $port))){
+				echo "[Error] Connection to $server : $port failed\n";
 				return 0;
-    			} else {
-				return $con;
+			}else{
+    				if(!@ssh2_auth_password($con, $username, $password)) {
+       		 			echo "[Error] Authentication to $server : $port failed using username $username\n";
+					return 0;
+    				}else{
+					return $con;
+				}
 			}
-   		}
-	}
-
-
-	function set_up_key_ssh_connection($server,$port,$username,$public_key,$private_key,$passphrase){
-		if (!function_exists("ssh2_connect")) die("function ssh2_connect doesn't exist");
-		if(!($con = ssh2_connect($server, $port,array('hostkey'=>'ssh-rsa')))){
-	 		echo "[Error] Connection to $server : $port failed\n";
-			return 0;
 		}else{
-    			if(!ssh2_auth_pubkey_file($con, $username,$public_key,$private_key, $passphrase)) {
-        			echo "[Error] Authentication to $server : $port failed using public key\n";
-				return 0;
-    			} else {
-				return $con;
-			}
-   		}
-	}
+			if(!($con = @ssh2_connect($server, $port,array('hostkey'=>'ssh-rsa')))){
+                        	echo "[Error] Connection to $server : $port failed\n";
+                        	return 0;
+                	}else{
+				$keys = explode("{{sshpta-key}}",$password);
+				$public_key = trim(str_replace("{{sshpta-key}}","",$keys[0]));
+				$private_key = trim(str_replace("{{sshpta-key}}","",$keys[1]));
+				$passphrase = trim(str_replace("{{sshpta-key}}","",$keys[2]));
 
+				if(!@ssh2_auth_pubkey_file($con, $username,$public_key,$private_key,$passphrase)) {
+                                	echo "[Error] Authentication to $server : $port failed using public key\n";
+                                	return 0;
+                        	}else{
+                                	return $con;
+                        	}
+			}
+		}
+	}
 
 	function ssh_shell_exec($ssh_connection, $command){
 		if($ssh_connection != 0){
