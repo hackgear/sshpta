@@ -103,6 +103,7 @@ Predicted issues:
 	* tar is assumed to be present on remote system etc.
 	want to build in more error checking to run remote
 	host checks
+	* Remote permissions are not great, very 'hacky'
 
 ===
 
