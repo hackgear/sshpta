@@ -6,8 +6,7 @@ SSH Pen Tester Automation
 
 sshpta is an SSH automation tool specifically aimed at
 saving penetration testers time when they have to carry
-out reptitive tasks against multiple target SSH hosts and
-have been provided credentials.
+out reptitive tasks against multiple target SSH hosts.
 
 The tool was initially created as a simple way to login
 using interactive password based authentication to multiple
